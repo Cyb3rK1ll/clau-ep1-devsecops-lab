@@ -16,7 +16,7 @@ jobs:
       - name: Harden Runner (egress firewall)           # ✅ #4
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
-          egress-policy: audit        # baseline: revisá el job summary y luego pasá a block
+          egress-policy: audit        # baseline; luego se pasa a block
           disable-telemetry: true
           allowed-endpoints: >
             github.com:443
@@ -41,6 +41,7 @@ jobs:
         uses: anthropics/claude-code-action@8897fb4a6a67cd7564a6da5aa60f5f518b61f584  # ✅ #1 v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}             # postea con GITHUB_TOKEN (sin GitHub App / OIDC)
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
