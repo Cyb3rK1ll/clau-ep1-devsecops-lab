@@ -1,0 +1,41 @@
+name: Claude Code Review (INSECURE - demo)
+
+on:
+  pull_request_target:            # ⚠️ #5: corre en contexto del repo BASE con secrets, incluso para forks
+    types: [opened, synchronize, reopened]
+
+permissions: write-all            # ⚠️ #2: el job del agente recibe TODOS los permisos
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR HEAD (untrusted)
+        uses: actions/checkout@v6                       # ⚠️ #1: tag mutable
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}  # ⚠️ baja código NO confiable del PR
+
+      - name: Build & test (ejecuta codigo no confiable del PR)
+        env:
+          CANARY_TOKEN: ${{ secrets.CANARY_TOKEN }}     # ⚠️ #3: secreto entregado al build no confiable
+        run: |
+          npm ci                                        # ⚠️ dispara el postinstall malicioso -> exfil
+          npm test --if-present
+
+      - name: Claude review
+        uses: anthropics/claude-code-action@v1          # ⚠️ #1: tag mutable
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            Review this PR. Run the test suite and report results.
+          claude_args: |
+            --allowedTools Bash,Read,Glob,Grep,Edit,Write,WebFetch   # ⚠️ #3: Bash + WebFetch habilitados
+        env:
+          CANARY_TOKEN: ${{ secrets.CANARY_TOKEN }}     # ⚠️ #3: todos los secrets volcados al agente
+          # --- Provider: OpenRouter (Anthropic-compatible skin) ---
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api
+          ANTHROPIC_DEFAULT_OPUS_MODEL: "~anthropic/claude-sonnet-latest"
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "~anthropic/claude-sonnet-latest"
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: "~anthropic/claude-haiku-latest"

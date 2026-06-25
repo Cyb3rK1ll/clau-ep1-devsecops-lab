@@ -1,0 +1,12 @@
+{
+  "name": "ep1-lab-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/smoke.test.js"
+  },
+  "dependencies": {
+    "express": "4.21.2"
+  }
+}

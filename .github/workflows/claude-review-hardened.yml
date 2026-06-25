@@ -1,0 +1,56 @@
+name: Claude Code Review (HARDENED)
+
+on:
+  pull_request:                   # ✅ #5: sin _target; PRs de fork NO reciben secrets del base
+    types: [opened, synchronize, reopened]
+
+permissions:                      # ✅ #2: least privilege
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    if: github.event.pull_request.head.repo.full_name == github.repository  # ✅ #5: solo PRs del mismo repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner (egress firewall)           # ✅ #4
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit        # baseline: revisá el job summary y luego pasá a block
+          disable-telemetry: true
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            objects.githubusercontent.com:443
+            codeload.github.com:443
+            registry.npmjs.org:443
+            api.anthropic.com:443
+            openrouter.ai:443          # endpoint del proveedor del modelo (Claude vía OpenRouter)
+            # webhook.site NO esta en la lista -> el intento de exfil se bloquea
+
+      - name: Checkout
+        uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0   # ✅ #1 v6.0.3
+
+      - name: Build & test
+        run: |
+          npm ci                       # postinstall corre igual, pero: secreto ausente + egress bloqueado
+          npm test --if-present
+        # ✅ #3: CANARY_TOKEN intencionalmente NO se pasa a este step
+
+      - name: Claude review
+        uses: anthropics/claude-code-action@8897fb4a6a67cd7564a6da5aa60f5f518b61f584  # ✅ #1 v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            Review this PR for security issues and bugs. Use inline comments.
+          claude_args: |
+            --allowedTools Read,Glob,Grep      # ✅ #3: solo lectura, sin Bash ni WebFetch
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # ✅ #3: solo la key que necesita
+          # --- Provider: OpenRouter (Anthropic-compatible skin) ---
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api
+          ANTHROPIC_DEFAULT_OPUS_MODEL: "~anthropic/claude-sonnet-latest"
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "~anthropic/claude-sonnet-latest"
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: "~anthropic/claude-haiku-latest"
