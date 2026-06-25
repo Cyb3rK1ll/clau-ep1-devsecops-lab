@@ -16,8 +16,11 @@ jobs:
       - name: Harden Runner (egress firewall)           # ✅ #4
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
-          egress-policy: audit        # baseline; luego se pasa a block
+          egress-policy: block        # primera pasada: usar 'audit', leer baseline, luego 'block'
           disable-telemetry: true
+          # OJO: dentro del bloque '>' los '#' NO son comentarios (son texto literal),
+          # asi que la allowlist debe contener SOLO entradas host:port. El dominio del
+          # listener (webhook.site) queda intencionalmente AFUERA -> en block se bloquea.
           allowed-endpoints: >
             github.com:443
             api.github.com:443
@@ -25,8 +28,7 @@ jobs:
             codeload.github.com:443
             registry.npmjs.org:443
             api.anthropic.com:443
-            openrouter.ai:443          # endpoint del proveedor del modelo (Claude vía OpenRouter)
-            # webhook.site NO esta en la lista -> el intento de exfil se bloquea
+            openrouter.ai:443
 
       - name: Checkout
         uses: actions/checkout@9f698171ed81b15d1823a05fc7211befd50c8ae0   # ✅ #1 v6.0.3
