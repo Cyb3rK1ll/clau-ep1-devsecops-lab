@@ -27,12 +27,14 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}             # postea con GITHUB_TOKEN (sin GitHub App / OIDC)
+          track_progress: true                          # postea un comentario visible con el resumen del review
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
-            Review this PR. Run the test suite and report results.
+            Review this PR for security issues and bugs. Run the test suite and report results.
+            Post a summary of your findings, and add inline comments on changed lines where applicable.
           claude_args: |
-            --allowedTools Bash,Read,Glob,Grep,Edit,Write,WebFetch   # ⚠️ #3: Bash + WebFetch habilitados
+            --allowedTools "Bash,Read,Glob,Grep,Edit,Write,WebFetch,mcp__github_inline_comment__create_inline_comment"   # ⚠️ #3: Bash + WebFetch habilitados
         env:
           CANARY_TOKEN: ${{ secrets.CANARY_TOKEN }}     # ⚠️ #3: todos los secrets volcados al agente
           # --- Provider: OpenRouter (Anthropic-compatible skin) ---

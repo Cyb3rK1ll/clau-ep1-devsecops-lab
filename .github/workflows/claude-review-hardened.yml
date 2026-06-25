@@ -42,12 +42,14 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ github.token }}             # postea con GITHUB_TOKEN (sin GitHub App / OIDC)
+          track_progress: true                          # postea un comentario visible con el resumen del review
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
-            Review this PR for security issues and bugs. Use inline comments.
+            Review this PR for security issues and bugs.
+            Post a summary of your findings, and add inline comments on changed lines where applicable.
           claude_args: |
-            --allowedTools Read,Glob,Grep      # ✅ #3: solo lectura, sin Bash ni WebFetch
+            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment"   # ✅ #3: lectura + comentar, sin Bash ni WebFetch
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # ✅ #3: solo la key que necesita
           # --- Provider: OpenRouter (Anthropic-compatible skin) ---
