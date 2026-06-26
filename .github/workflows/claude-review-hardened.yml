@@ -30,6 +30,7 @@ jobs:
             registry.npmjs.org:443
             api.anthropic.com:443
             claude.ai:443
+            downloads.claude.ai:443
             openrouter.ai:443
 
       - name: Checkout
