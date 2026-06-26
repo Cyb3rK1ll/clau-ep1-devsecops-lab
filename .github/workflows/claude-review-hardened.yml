@@ -25,9 +25,11 @@ jobs:
             github.com:443
             api.github.com:443
             objects.githubusercontent.com:443
+            private-user-images.githubusercontent.com:443
             codeload.github.com:443
             registry.npmjs.org:443
             api.anthropic.com:443
+            claude.ai:443
             openrouter.ai:443
 
       - name: Checkout
@@ -56,7 +58,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # ✅ #3: solo la key que necesita
           # --- Provider: OpenRouter (Anthropic-compatible skin) ---
           ANTHROPIC_BASE_URL: https://openrouter.ai/api
-          ANTHROPIC_DEFAULT_OPUS_MODEL: "~anthropic/claude-haiku-latest"     # PRUEBA: modelo barato (Haiku)
-          ANTHROPIC_DEFAULT_SONNET_MODEL: "~anthropic/claude-haiku-latest"   # PRUEBA: modelo barato (Haiku)
-          ANTHROPIC_DEFAULT_HAIKU_MODEL: "~anthropic/claude-haiku-latest"
+          ANTHROPIC_DEFAULT_OPUS_MODEL: "google/gemini-2.5-flash-lite"     # PRUEBA ultra-barato (~$0.01/run)
+          ANTHROPIC_DEFAULT_SONNET_MODEL: "google/gemini-2.5-flash-lite"   # para GRABAR: volver a ~anthropic/claude-haiku-latest
+          ANTHROPIC_DEFAULT_HAIKU_MODEL: "google/gemini-2.5-flash-lite"
           CLAUDE_CODE_MAX_OUTPUT_TOKENS: "8000"      # cap para no pasar el presupuesto de OpenRouter (evita 402)
